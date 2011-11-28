@@ -36,6 +36,17 @@ public partial class ReportCardWindowsGUIMerger : Form
     [DllImport("kernel32.dll")]
     private static extern bool AttachConsole(int pid);
 
+    // Windows.Forms.MessageBox doesn't have Cancel/Try Again/Continue
+    [DllImport("user32.dll", EntryPoint="MessageBox")]
+    private static extern int MsgBox(IntPtr hwnd, string text, string caption, int type);
+    private const int MB_CANCELTRYCONTINUE = 0x06;
+    private const int MB_ICONERROR = 0x10;
+    private const int MB_DEFBUTTON2 = 0x100;
+    private const int MB_TASKMODAL = 0x2000;
+    private const int IDCANCEL = 2;
+    private const int IDTRYAGAIN = 10;
+    private const int IDCONTINUE = 11;
+
     private static bool TryAttachConsole(int pid)
     {
         try
@@ -685,21 +696,49 @@ public partial class ReportCardWindowsGUIMerger : Form
         {
             if (e.Error != null)
             {
-                DialogResult res = MessageBox.Show(
-                    "Caught error when processing record " + (string)e.Data + "\n" +
-                    "Do you wish to continue?\n\n" +
-                    "  Operation = " + e.Msg.ToString() + "\n" +
-                    "  Name = " + e.Name + "\n" +
-                    "  Error = \n" + e.Error.ToString(),
+                string msg;
+                if (e.Error is System.IO.IOException && e.Msg == ReportCardWorkerMessage.SavePDF)
+                {
+                    msg = String.Format(
+                        "Could not write to the PDF file when merging record {0}\n" +
+                        "Please check that the PDF file is not open\n" +
+                        "Do you wish to retry the operation, skip the record, or cancel?",
+                        e.Data.ToString()
+                    );
+                }
+                else
+                {
+                    msg = String.Format(
+                        "Caught error when processing record {0}\n" +
+                        "Do you wish to retry the operation, skip the record, or cancel?\n\n" +
+                        "  Operation = {1}\n" +
+                        "  Name = {2}\n" +
+                        "  Error:\n{3}\n",
+                        e.Data.ToString(),
+                        e.Msg.ToString(),
+                        e.Name,
+                        e.Error.ToString()
+                    );
+                }
+                    
+                int res = MsgBox(
+                    IntPtr.Zero, 
+                    msg, 
                     "Error processing record",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Error,
-                    MessageBoxDefaultButton.Button2);
-                if (res == System.Windows.Forms.DialogResult.No)
+                    MB_CANCELTRYCONTINUE |
+                    MB_ICONERROR |
+                    MB_TASKMODAL |
+                    MB_DEFBUTTON2
+                );
+                if (res == IDCANCEL)
                 {
                     e.Cancel = true;
                     ssStatusText.Text = "Error processing record";
                     CancelMerge();
+                }
+                else if (res == IDTRYAGAIN)
+                {
+                    e.Retry = true;
                 }
             }
         }

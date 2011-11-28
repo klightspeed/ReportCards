@@ -293,7 +293,7 @@
             string val = null;
             if (data.Table.Columns.Contains(fieldname))
             {
-                val = data[fieldname].ToString();
+                val = data[fieldname].ToString().ToUpper();
             }
             Value = val;
         }
@@ -318,7 +318,7 @@
 
                 if (value != null)
                 {
-                    mark = value.Trim();
+                    mark = value.Trim().ToUpper();
                     if (cells.ContainsKey(mark) && cells[mark] != null)
                     {
                         cells[mark].TextRange.Delete();
@@ -396,7 +396,7 @@
             string val = null;
             if (data.Table.Columns.Contains(fieldname))
             {
-                val = data[fieldname].ToString();
+                val = data[fieldname].ToString().ToUpper();
             }
             Value = val;
         }
@@ -425,7 +425,7 @@
 
                 if (value != null)
                 {
-                    mark = value.Trim();
+                    mark = value.Trim().ToUpper();
                     if (cells.ContainsKey(mark) && cells[mark] != null)
                     {
                         cells[mark].Fill.BackColor.RGB = shaded_bgcolour;
@@ -1208,6 +1208,7 @@
         public Exception Error;
         public ReportCardWorkerJobHandler Completed;
         public bool Cancel;
+        public bool Retry;
 
         public ReportCardWorkerJob()
         {
@@ -1268,104 +1269,115 @@
                         job = (ReportCardWorkerJob)jobqueue.Dequeue();
                         count = jobqueue.Count;
                     }
-                    try
+
+                    do
                     {
-                        Console.WriteLine("Processing job {0}\n", job.Msg.ToString());
-                        switch (job.Msg)
+                        job.Retry = false;
+                        job.Cancel = false;
+                        job.Error = null;
+                        try
                         {
-                            case ReportCardWorkerMessage.OpenDatasource:
-                                if (card != null)
-                                {
-                                    card.DataSource = null;
-                                }
-                                if (data != null)
-                                {
-                                    data.Dispose();
-                                }
-                                data = new ReportCardData(job.Name);
-                                job.Data = data.Names;
-                                if (card != null)
-                                {
-                                    card.DataSource = data;
-                                }
-                                break;
-                            case ReportCardWorkerMessage.CloseDatasource:
-                                if (card != null)
-                                {
-                                    card.DataSource = null;
-                                }
-                                if (data != null)
-                                {
-                                    data.Dispose();
-                                    data = null;
-                                }
-                                break;
-                            case ReportCardWorkerMessage.OpenTemplate:
-                                if (card != null)
-                                {
-                                    card.Dispose();
-                                }
-                                card = ReportCard.OpenTemplate(job.Name, pubapp, usewingdingticks);
-                                if (data != null)
-                                {
-                                    card.DataSource = data;
-                                }
-                                break;
-                            case ReportCardWorkerMessage.CloseTemplate:
-                                if (card != null)
-                                {
-                                    card.Dispose();
-                                    card = null;
-                                }
-                                break;
-                            case ReportCardWorkerMessage.MergeRecord:
-                                card.MergeReport(job.Name);
-                                break;
-                            case ReportCardWorkerMessage.SavePUB:
-                                card.SavePUB(job.Name);
-                                break;
-                            case ReportCardWorkerMessage.SavePDF:
-                                card.SavePDF(job.Name);
-                                break;
-                            case ReportCardWorkerMessage.ExportXPS:
-                                job.Data = card.ExportXPS();
-                                break;
-                            case ReportCardWorkerMessage.GetPageSetup:
-                                job.Data = card.PageSetup;
-                                break;
-                            case ReportCardWorkerMessage.Quit:
-                                ((Microsoft.Office.Interop.Publisher._Application)pubapp).Quit();
-                                return;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        job.Error = e;
-                        /*
-                        Console.Write(
-                            "Caught exception\n" + 
-                            "Msg = {0}\n" +
-                            "Name = {1}\n" +
-                            "Data = {2}\n" +
-                            "{3}\n\n",
-                            job.Msg.ToString(),
-                            job.Name,
-                            job.Data.ToString(),
-                            e.ToString());
-                         */
-                    }
-                    finally
-                    {
-                        if (job.Completed != null && !(bool)cancelled)
-                        {
-                            job.Completed(this, job);
-                            if (job.Cancel)
+                            Console.WriteLine("Processing job {0}\n", job.Msg.ToString());
+                            switch (job.Msg)
                             {
-                                jobqueue.Clear();
+                                case ReportCardWorkerMessage.OpenDatasource:
+                                    if (card != null)
+                                    {
+                                        card.DataSource = null;
+                                    }
+                                    if (data != null)
+                                    {
+                                        data.Dispose();
+                                    }
+                                    data = new ReportCardData(job.Name);
+                                    job.Data = data.Names;
+                                    if (card != null)
+                                    {
+                                        card.DataSource = data;
+                                    }
+                                    break;
+                                case ReportCardWorkerMessage.CloseDatasource:
+                                    if (card != null)
+                                    {
+                                        card.DataSource = null;
+                                    }
+                                    if (data != null)
+                                    {
+                                        data.Dispose();
+                                        data = null;
+                                    }
+                                    break;
+                                case ReportCardWorkerMessage.OpenTemplate:
+                                    if (card != null)
+                                    {
+                                        card.Dispose();
+                                    }
+                                    card = ReportCard.OpenTemplate(job.Name, pubapp, usewingdingticks);
+                                    if (data != null)
+                                    {
+                                        card.DataSource = data;
+                                    }
+                                    break;
+                                case ReportCardWorkerMessage.CloseTemplate:
+                                    if (card != null)
+                                    {
+                                        card.Dispose();
+                                        card = null;
+                                    }
+                                    break;
+                                case ReportCardWorkerMessage.MergeRecord:
+                                    card.MergeReport(job.Name);
+                                    break;
+                                case ReportCardWorkerMessage.SavePUB:
+                                    card.SavePUB(job.Name);
+                                    break;
+                                case ReportCardWorkerMessage.SavePDF:
+                                    card.SavePDF(job.Name);
+                                    break;
+                                case ReportCardWorkerMessage.ExportXPS:
+                                    job.Data = card.ExportXPS();
+                                    break;
+                                case ReportCardWorkerMessage.GetPageSetup:
+                                    job.Data = card.PageSetup;
+                                    break;
+                                case ReportCardWorkerMessage.Quit:
+                                    ((Microsoft.Office.Interop.Publisher._Application)pubapp).Quit();
+                                    return;
                             }
                         }
-                        cancelled = false;
-                    }
+                        catch (Exception e)
+                        {
+                            job.Error = e;
+                            /*
+                            Console.Write(
+                                "Caught exception\n" + 
+                                "Msg = {0}\n" +
+                                "Name = {1}\n" +
+                                "Data = {2}\n" +
+                                "{3}\n\n",
+                                job.Msg.ToString(),
+                                job.Name,
+                                job.Data.ToString(),
+                                e.ToString());
+                             */
+                        }
+                        finally
+                        {
+                            if (job.Completed != null && !(bool)cancelled)
+                            {
+                                job.Retry = false;
+                                job.Cancel = false;
+
+                                job.Completed(this, job);
+                                if (job.Cancel)
+                                {
+                                    job.Retry = false;
+                                    jobqueue.Clear();
+                                }
+                            }
+                            cancelled = false;
+                        }
+                    } while (job.Retry);
                 }
             }
         }
