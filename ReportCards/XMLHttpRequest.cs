@@ -4,13 +4,13 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using MSXML2;
+    //using MSXML2;
     using System.Threading;
     using System.Net;
 
     internal class XmlHttpClient : IDisposable
     {
-        private XMLHTTP req;
+        //private XMLHTTP req;
 
         public XmlHttpClient ()
         {

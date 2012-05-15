@@ -7,9 +7,9 @@
     using System.Data.OleDb;
     using System.IO;
 
-    public class ReportCardWorksheet : DataTable
+    internal class ReportCardWorksheet : DataTable
     {
-        internal ReportCardWorksheet()
+        public ReportCardWorksheet()
             : base()
         {
         }
@@ -79,44 +79,53 @@
             string[][] _data = new string[this.Columns.Count][];
             ReportCardWorksheet sheet = new ReportCardWorksheet();
 
-            sheet.BeginInit();
-            sheet.BeginLoadData();
-
-            sheet.Columns.Add(this.Columns[0].ColumnName);
-            for (int i = 0; i < this.Rows.Count; i++)
+            try
             {
-                sheet.Columns.Add(this.Rows[i][0] as string);
-            }
 
-            sheet.PrimaryKey = new DataColumn[] { sheet.Columns[0] };
-            sheet.TableName = this.TableName;
+                sheet.BeginInit();
+                sheet.BeginLoadData();
 
-            for (int i = 1; i < this.Columns.Count; i++)
-            {
-                List<string> rowdata = new List<string>();
-                rowdata.Add(this.Columns[i].ColumnName);
-                for (int j = 0; j < this.Rows.Count; j++)
+                sheet.Columns.Add(this.Columns[0].ColumnName);
+                for (int i = 0; i < this.Rows.Count; i++)
                 {
-                    rowdata.Add(this.Rows[j][i] as string);
+                    sheet.Columns.Add(this.Rows[i][0] as string);
                 }
-                sheet.Rows.Add(rowdata.ToArray());
+
+                sheet.PrimaryKey = new DataColumn[] { sheet.Columns[0] };
+                sheet.TableName = this.TableName;
+
+                for (int i = 1; i < this.Columns.Count; i++)
+                {
+                    List<string> rowdata = new List<string>();
+                    rowdata.Add(this.Columns[i].ColumnName);
+                    for (int j = 0; j < this.Rows.Count; j++)
+                    {
+                        rowdata.Add(this.Rows[j][i] as string);
+                    }
+                    sheet.Rows.Add(rowdata.ToArray());
+                }
+
+                sheet.EndLoadData();
+                sheet.EndInit();
+
+                return sheet;
             }
-
-            sheet.EndLoadData();
-            sheet.EndInit();
-
-            return sheet;
+            catch
+            {
+                sheet.Dispose();
+                throw;
+            }
         }
     }
 
-    public abstract class ReportCardWorkbook : Dictionary<string, ReportCardWorksheet>
+    internal abstract class ReportCardWorkbook : Dictionary<string, ReportCardWorksheet>
     {
-        internal ReportCardWorkbook(string id)
+        public ReportCardWorkbook(string id)
         {
         }
     }
 
-    public abstract class ReportCardMarksTable : IDisposable
+    internal abstract class ReportCardMarksTable : IDisposable
     {
         private string id;
 
@@ -222,30 +231,40 @@
         }
     }
 
-    public class ReportCardData : IDisposable, IEnumerable<DataRow>
+    internal class ReportCardData : IDisposable, IEnumerable<DataRow>
     {
         private DataTable table;
 
         public ReportCardData(string name)
         {
-            ReportCardMarksTable marks;
-            table = new DataTable();
+            ReportCardMarksTable marks = null;
 
-            if (name.StartsWith("grubrics:"))
+            try
             {
-                marks = new GoogleMarksTable(name.Substring(9));
-            }
-            else if (name.EndsWith(".xlsx") || name.EndsWith(".xlsb") || name.EndsWith(".xls"))
-            {
-                marks = new ExcelMarksTable(name);
-            }
-            else
-            {
-                throw new ArgumentException();
-            }
+                table = new DataTable();
 
-            marks.Fill(table);
-            marks.Dispose();
+                if (name.StartsWith("grubrics:"))
+                {
+                    marks = new GoogleMarksTable(name.Substring(9));
+                }
+                else if (name.EndsWith(".xlsx") || name.EndsWith(".xlsb") || name.EndsWith(".xls"))
+                {
+                    marks = new ExcelMarksTable(name);
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+
+                marks.Fill(table);
+            }
+            finally
+            {
+                if (marks != null)
+                {
+                    marks.Dispose();
+                }
+            }
         }
 
         ~ReportCardData()
@@ -260,12 +279,13 @@
 
         protected void Dispose(bool disposing)
         {
+            if (table != null)
+            {
+                table.Dispose();
+            }
+
             if (disposing)
             {
-                if (table != null)
-                {
-                    table.Dispose();
-                }
                 GC.SuppressFinalize(this);
             }
         }
@@ -275,9 +295,11 @@
             get
             {
                 string filter = "Name = '" + name.Replace("'", "''") + "'";
-                DataView view = new DataView(table, filter, "Name", DataViewRowState.CurrentRows);
-                DataRow row = view[0].Row;
-                return row;
+                using (DataView view = new DataView(table, filter, "Name", DataViewRowState.CurrentRows))
+                {
+                    DataRow row = view[0].Row;
+                    return row;
+                }
             }
         }
 

@@ -1,7 +1,5 @@
 ﻿namespace SouthernCluster.ReportCards
 {
-    using Microsoft.Office.Core;
-    using Microsoft.Office.Interop.Publisher;
     using System;
     using System.Text;
     using System.Windows.Forms;
@@ -13,8 +11,11 @@
     using System.Threading;
     using System.Windows.Xps;
     using System.Windows.Xps.Packaging;
+    using Microsoft.Office.Interop.Publisher;
+    using Publisher = Microsoft.Office.Interop.Publisher;
+    using Microsoft.Office.Core;
 
-    public class ReportCardRangeCollection : List<ReportCardRange>
+    internal class ReportCardRangeCollection : List<ReportCardRange>
     {
         private Dictionary<string, string> variables;
 
@@ -47,7 +48,7 @@
         }
     }
     
-    public class ReportCardRange
+    internal class ReportCardRange
     {
         public int col = 0;
         public int row = 0;
@@ -60,10 +61,10 @@
         public string fieldname = null;
         public string[] colours = { "white", "black", "black", "white" };
 
-        public static ReportCardRangeCollection ParseCommands(Document doc)
+        public static ReportCardRangeCollection ParseCommands(Publisher.Document doc)
         {
             ReportCardRangeCollection ret = null;
-            foreach (Microsoft.Office.Interop.Publisher.Shape shape in doc.ScratchArea.Shapes)
+            foreach (Publisher.Shape shape in doc.ScratchArea.Shapes)
             {
                 if (shape.HasTextFrame == MsoTriState.msoTrue &&
                     shape.TextFrame.HasText == MsoTriState.msoTrue)
@@ -206,7 +207,7 @@
         }
     }
 
-    public interface IReportCardMergeEntry
+    internal interface IReportCardMergeEntry
     {
         void Update(DataRow data);
         void Reset();
@@ -214,13 +215,13 @@
         string Value { get; set; }
     }
 
-    public class ReportCardMergeField : IReportCardMergeEntry
+    internal class ReportCardMergeField : IReportCardMergeEntry
     {
-        private TextRange range;
+        private Publisher.TextRange range;
         private string fieldname;
-        public Font font;
+        public Publisher.Font font;
 
-        public ReportCardMergeField(TextRange range, string fieldname)
+        public ReportCardMergeField(Publisher.TextRange range, string fieldname)
         {
             this.range = range;
             this.fieldname = fieldname;
@@ -258,8 +259,8 @@
             }
             set
             {
-                TextRange delrange = range.Duplicate;
-                range.Collapse(PbCollapseDirection.pbCollapseStart);
+                Publisher.TextRange delrange = range.Duplicate;
+                range.Collapse(Publisher.PbCollapseDirection.pbCollapseStart);
                 delrange.Delete();
                 if (value != null)
                 {
@@ -270,15 +271,15 @@
         }
     }
 
-    public class ReportCardTickRange: IReportCardMergeEntry
+    internal class ReportCardTickRange: IReportCardMergeEntry
     {
-        private Dictionary<string,Cell> cells;
+        private Dictionary<string,Publisher.Cell> cells;
         private string fieldname;
         private string mark;
         private bool usewingdingticks;
 
         public ReportCardTickRange (
-            Dictionary<string,Cell> cells,
+            Dictionary<string,Publisher.Cell> cells,
             string fieldname,
             bool usewingdingticks
         ){
@@ -325,7 +326,7 @@
                         if (usewingdingticks)
                         {
                             cells[mark].TextRange.Text = "ü"; // Wingdings Check Mark
-                            cells[mark].TextRange.Font.SetScriptName(PbFontScriptType.pbFontScriptAsciiLatin, "Wingdings");
+                            cells[mark].TextRange.Font.SetScriptName(Publisher.PbFontScriptType.pbFontScriptAsciiLatin, "Wingdings");
                         }
                         else
                         {
@@ -353,9 +354,9 @@
         }
     }
 
-    public class ReportCardShadeRange : IReportCardMergeEntry
+    internal class ReportCardShadeRange : IReportCardMergeEntry
     {
-        private Dictionary<string, Cell> cells;
+        private Dictionary<string, Publisher.Cell> cells;
         private string fieldname;
         private string mark;
         private int unshaded_bgcolour;
@@ -376,7 +377,7 @@
         }
 
         public ReportCardShadeRange(
-            Dictionary<string, Cell> cells,
+            Dictionary<string, Publisher.Cell> cells,
             string fieldname,
             string[] colours
         )
@@ -455,7 +456,7 @@
         }
     }
 
-    public class ReportCardPicture : IReportCardMergeEntry
+    internal class ReportCardPicture : IReportCardMergeEntry
     {
         private string fieldname;
         private string filename;
@@ -466,9 +467,9 @@
         private float contrast;
         private float brightness;
         private Object parent;
-        private Microsoft.Office.Interop.Publisher.Shape shape;
+        private Publisher.Shape shape;
 
-        public ReportCardPicture (Microsoft.Office.Interop.Publisher.Shape shape)
+        public ReportCardPicture (Publisher.Shape shape)
         {
             this.shape = shape;
             this.parent = shape.Parent;
@@ -530,14 +531,12 @@
                     //string tempname = Path.GetTempFileName();
                     //string temppicname = tempname + value.Substring(value.LastIndexOf("."));
                     //File.Copy(value, temppicname, true);
-                    shape.PictureFormat.Remove();
                     shape.PictureFormat.RestoreOriginalColors();
-                    shape.PictureFormat.ReplaceEx(value, PbPictureInsertAs.pbPictureInsertAsLinked, pbPictureInsertFit.pbFit);
+                    shape.PictureFormat.Replace(value, Publisher.PbPictureInsertAs.pbPictureInsertAsLinked);
                     filename = value;
                 }
                 else
                 {
-                    shape.PictureFormat.Remove();
                     shape.Fill.BackColor.RGB = 0x00FFFFFF;
                     shape.PictureFormat.Recolor(shape.Fill.BackColor, MsoTriState.msoFalse);
                     filename = null;
@@ -546,7 +545,7 @@
         }
     }
 
-    public class ReportCardTable
+    internal class ReportCardTable
     {
         int width;
         int height;
@@ -568,18 +567,18 @@
             Object o = table;
             List<Object> objs = new List<Object>();
             objs.Add(o);
-            Microsoft.Office.Interop.Publisher.Shape tblshp = null;
-            Microsoft.Office.Interop.Publisher.Shape shp = null;
-            Microsoft.Office.Interop.Publisher.Page pg = null;
-            while ((o as Microsoft.Office.Interop.Publisher.Application) == null)
+            Publisher.Shape tblshp = null;
+            Publisher.Shape shp = null;
+            Publisher.Page pg = null;
+            while ((o as Publisher.Application) == null)
             {
                 o = o.GetType().InvokeMember("Parent", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.GetProperty, null, o, null);
                 objs.Add(o);
-                shp = o as Microsoft.Office.Interop.Publisher.Shape ?? shp;
+                shp = o as Publisher.Shape ?? shp;
                 if (tblshp == null){
                     tblshp = shp;
                 }
-                pg = o as Microsoft.Office.Interop.Publisher.Page ?? pg;
+                pg = o as Publisher.Page ?? pg;
             }
             page = pg.PageIndex;
 
@@ -644,7 +643,7 @@
         }
     }
     
-    public class ReportCard : IDisposable
+    internal class ReportCard : IDisposable
     {
         private Page[] pages;
         private Page[] masterpages;
@@ -653,13 +652,13 @@
         private Dictionary<string, int> tablenames;
         private bool deleted;
         private ReportCardRangeCollection ranges;
-        private Microsoft.Office.Interop.Publisher.Application pubapp;
+        private Publisher.Application pubapp;
         private Document doc;
         private ReportCardData data;
         private string curname;
         private string datasourcename;
 
-        public ReportCard(Microsoft.Office.Interop.Publisher.Application pubapp, Document doc, string pubname, bool usewingdingticks)
+        public ReportCard(Publisher.Application pubapp, Document doc, string pubname, bool usewingdingticks)
         {
             this.pubapp = pubapp;
             this.doc = doc;
@@ -725,23 +724,25 @@
         {
             if (disposing)
             {
-                if (doc != null)
-                {
-                    doc.Close();
-                    doc = null;
-                }
-
                 if (pubapp != null)
                 {
+                    if (doc != null)
+                    {
+                        doc.Close();
+                        doc = null;
+                    }
+
                     ((_Application)pubapp).Quit();
                 }
+                pubapp = null;
+                doc = null;
             }
-            doc = null;
+
             data = null;
             deleted = true;
         }
 
-        private void GetTableCellsInShape(Microsoft.Office.Interop.Publisher.Shape shape){
+        private void GetTableCellsInShape(Publisher.Shape shape){
             int id = shape.ID;
             Table table = shape.Table;
 
@@ -858,18 +859,18 @@
             tablenames = new Dictionary<string, int>();
             cells = new Dictionary<int, ReportCardTable>();
             mergeentries = new List<IReportCardMergeEntry>();
-            foreach (Microsoft.Office.Interop.Publisher.Page page in pages)
+            foreach (Publisher.Page page in pages)
             {
-                foreach (Microsoft.Office.Interop.Publisher.Shape shape in page.Shapes)
+                foreach (Publisher.Shape shape in page.Shapes)
                 {
                     GetMergeFieldsInShape(shape);
                 }
             }
             if (masterpages != null)
             {
-                foreach (Microsoft.Office.Interop.Publisher.Page page in masterpages)
+                foreach (Publisher.Page page in masterpages)
                 {
-                    foreach (Microsoft.Office.Interop.Publisher.Shape shape in page.Shapes)
+                    foreach (Publisher.Shape shape in page.Shapes)
                     {
                         GetMergeFieldsInShape(shape);
                     }
@@ -877,7 +878,7 @@
             }
         }
 
-        private void GetMergeFieldsInShape(Microsoft.Office.Interop.Publisher.Shape shape)
+        private void GetMergeFieldsInShape(Publisher.Shape shape)
         {
             switch (shape.Type){
                 case PbShapeType.pbTable:
@@ -897,7 +898,7 @@
                     }
                     break;
                 case PbShapeType.pbGroup:
-                    foreach (Microsoft.Office.Interop.Publisher.Shape grpshape in shape.GroupItems)
+                    foreach (Publisher.Shape grpshape in shape.GroupItems)
                     {
                         GetMergeFieldsInShape(grpshape);
                     }
@@ -910,7 +911,7 @@
                     goto case PbShapeType.pbPicture;
                 case PbShapeType.pbPicture:
                     // Cannot get merge field name; try Alternative text
-                    Microsoft.Office.Interop.Publisher.PictureFormat pic = shape.PictureFormat;
+                    Publisher.PictureFormat pic = shape.PictureFormat;
                     if (shape.AlternativeText.StartsWith("«") &&
                         shape.AlternativeText.Contains("»"))
                     {
@@ -972,7 +973,7 @@
                 fldstart = fldend;
             }
 
-            foreach (Microsoft.Office.Interop.Publisher.Shape shape in range.InlineShapes)
+            foreach (Publisher.Shape shape in range.InlineShapes)
             {
                 GetMergeFieldsInShape(shape);
             }
@@ -1131,7 +1132,7 @@
             }
         }
 
-        public static ReportCard OpenTemplate(string pubname, Microsoft.Office.Interop.Publisher.Application pubapp, bool usewingdingticks)
+        public static ReportCard OpenTemplate(string pubname, Publisher.Application pubapp, bool usewingdingticks)
         {
             bool pubappstarted = false;
             string temppubname = null;
@@ -1143,7 +1144,7 @@
             {
                 if (pubapp == null)
                 {
-                    pubapp = new Microsoft.Office.Interop.Publisher.Application();
+                    pubapp = new Publisher.Application();
                     pubappstarted = true;
                 }
                 if (!File.Exists(pubname))
@@ -1169,14 +1170,16 @@
                         pubapp = null;
                     }
 
-                    if (doc != null)
-                    {
-                        doc.Close();
-                    }
-
                     if (pubappstarted)
                     {
+                        if (doc != null)
+                        {
+                            doc.Close();
+                            doc = null;
+                        }
+
                         ((_Application)pubapp).Quit();
+                        pubapp = null;
                     }
                 }
             }
@@ -1198,9 +1201,9 @@
         GetPageSetup
     }
 
-    public delegate void ReportCardWorkerJobHandler(object sender, ReportCardWorkerJob e);
+    internal delegate void ReportCardWorkerJobHandler(object sender, ReportCardWorkerJob e);
 
-    public class ReportCardWorkerJob : EventArgs
+    internal class ReportCardWorkerJob : EventArgs
     {
         public ReportCardWorkerMessage Msg;
         public string Name;
@@ -1221,7 +1224,7 @@
         }
     }
 
-    public class ReportCardWorker
+    internal class ReportCardWorker : IDisposable
     {
         private Queue jobqueue;
         private AutoResetEvent jobadded;
@@ -1230,7 +1233,8 @@
         private ReportCardData data;
         private Object cancelled;
         private bool usewingdingticks;
-        private Microsoft.Office.Interop.Publisher.Application pubapp;
+        private Publisher.Application pubapp;
+        private Object pubapplock = new object();
 
         public ReportCardWorker()
         {
@@ -1241,11 +1245,62 @@
             worker.Start();
         }
 
+        ~ReportCardWorker()
+        {
+            this.Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.Quit();
+                this.worker.Join();
+            }
+
+            if (jobadded != null)
+            {
+                this.jobadded.Close();
+                this.jobadded = null;
+            }
+
+            if (this.card != null)
+            {
+                this.card.Dispose();
+                this.card = null;
+            }
+
+            lock (this.pubapplock)
+            {
+                if (this.pubapp != null)
+                {
+                    ((_Application)this.pubapp).Quit();
+                    this.pubapp = null;
+                }
+            }
+
+            if (this.data != null)
+            {
+                this.data.Dispose();
+                this.data = null;
+            }
+
+            if (disposing)
+            {
+                GC.SuppressFinalize(this);
+            }
+        }
+
         protected void Run()
         {
             ReportCardWorkerJob job;
 
-            pubapp = new Microsoft.Office.Interop.Publisher.Application();
+            pubapp = new Publisher.Application();
 
             while (jobadded.WaitOne())
             {
@@ -1341,7 +1396,14 @@
                                     job.Data = card.PageSetup;
                                     break;
                                 case ReportCardWorkerMessage.Quit:
-                                    ((Microsoft.Office.Interop.Publisher._Application)pubapp).Quit();
+                                    lock (pubapplock)
+                                    {
+                                        if (pubapp != null)
+                                        {
+                                            ((Publisher._Application)pubapp).Quit();
+                                        }
+                                        pubapp = null;
+                                    }
                                     return;
                             }
                         }

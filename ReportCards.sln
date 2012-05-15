@@ -2,17 +2,26 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportCards", "ReportCards\ReportCards.csproj", "{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3F9849B4-82B3-4C6D-A00C-3CBAB8D2B756} = {3F9849B4-82B3-4C6D-A00C-3CBAB8D2B756}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Run32", "Run32\Run32.csproj", "{3F9849B4-82B3-4C6D-A00C-3CBAB8D2B756}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x86 = Debug|x86
-		Release|x86 = Release|x86
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Debug|x86.ActiveCfg = Release|x86
-		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Debug|x86.Build.0 = Release|x86
-		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Release|x86.ActiveCfg = Release|x86
-		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Release|x86.Build.0 = Release|x86
+		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C519B7F-93AF-49F6-AD1D-C00FD24CFC98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F9849B4-82B3-4C6D-A00C-3CBAB8D2B756}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F9849B4-82B3-4C6D-A00C-3CBAB8D2B756}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F9849B4-82B3-4C6D-A00C-3CBAB8D2B756}.Release|Any CPU.ActiveCfg = Release|x86
+		{3F9849B4-82B3-4C6D-A00C-3CBAB8D2B756}.Release|Any CPU.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

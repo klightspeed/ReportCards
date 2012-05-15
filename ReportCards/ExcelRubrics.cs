@@ -4,73 +4,64 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Data;
-    using System.Data.OleDb;
+    using System.Data.Odbc;
     using System.IO;
 
-    public class ExcelWorksheet : ReportCardWorksheet
+    internal class ExcelWorksheet : ReportCardWorksheet
     {
-        internal ExcelWorksheet()
+        public ExcelWorksheet()
             : base()
         {
         }
 
-        internal ExcelWorksheet(string sheet, OleDbConnection conn)
+        public ExcelWorksheet(string sheet, OdbcConnection conn)
         {
-            this.BeginInit();
+            //this.BeginInit();
 
-            OleDbDataAdapter conncmd;
-            DataTable table = new DataTable();
+            OdbcDataAdapter conncmd;
+            using (DataTable table = new DataTable())
+            {
+                using (OdbcCommandBuilder bldr = new OdbcCommandBuilder())
+                {
+                    using (conncmd = new OdbcDataAdapter("SELECT * FROM " + bldr.QuoteIdentifier(sheet, conn), conn))
+                    {
+                        conncmd.Fill(table);
+                    }
+                }
 
-            conncmd = new OleDbDataAdapter("SELECT * FROM [" + sheet + "]", conn);
-            conncmd.Fill(table);
-            conncmd.Dispose();
+                this.Load(table);
+            }
 
-            this.Load(table);
-
-            this.EndInit();
+            //this.EndInit();
         }
     }
 
-    public class ExcelWorkbook : ReportCardWorkbook
+    internal class ExcelWorkbook : ReportCardWorkbook
     {
-        private List<string> GetSheets(OleDbConnection conn)
+        private List<string> GetSheets(OdbcConnection conn)
         {
-            DataTable tables = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new object[] { null, null, null, "TABLE" });
+            DataTable tables = conn.GetSchema("Tables");
             List<string> sheets = new List<string>();
             for (int i = 0; i < tables.Rows.Count; i++)
             {
-                sheets.Add(tables.Rows[i][2].ToString());
+                sheets.Add(tables.Rows[i]["TABLE_NAME"].ToString());
             }
             return sheets;
         }
 
-        internal ExcelWorkbook(string name)
+        public ExcelWorkbook(string name)
             : base(name)
         {
             string connstr;
-            if (name.EndsWith(".xlsx"))
+            if (name.EndsWith(".xlsx") || name.EndsWith(".xlsb") || name.EndsWith(".xls") || name.EndsWith(".xlsm"))
             {
-                connstr = "Provider=Microsoft.ACE.OLEDB.12.0;" +
-                          "Data Source=" + name + ";" +
-                          "Extended Properties=\"Excel 12.0 Xml;HDR=YES;IMEX=1;MAXSCANROWS=15;READONLY=TRUE\"";
-            }
-            else if (name.EndsWith(".xlsb"))
-            {
-                connstr = "Provider=Microsoft.ACE.OLEDB.12.0;" +
-                          "Data Source=" + name + ";" +
-                          "Extended Properties=\"Excel 12.0;HDR=YES;IMEX=1;MAXSCANROWS=15;READONLY=TRUE\"";
-            }
-            else if (name.EndsWith(".xls"))
-            {
-                connstr = "Provider=Microsoft.Jet.OLEDB.4.0;" +
-                          "Data Source=" + name + ";" +
-                          "Extended Properties=\"Excel 8.0;HDR=YES;READONLY=TRUE\"";
+                connstr = "Driver={Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)};DBQ=" + name;
             }
             else
             {
                 throw new ArgumentException();
             }
-            using (OleDbConnection conn = new OleDbConnection(connstr))
+            using (OdbcConnection conn = new OdbcConnection(connstr))
             {
                 conn.Open();
                 List<string> sheets = GetSheets(conn);
@@ -89,7 +80,7 @@
         }
     }
 
-    public class ExcelMarksTable : ReportCardMarksTable
+    internal class ExcelMarksTable : ReportCardMarksTable
     {
         public ExcelMarksTable(string name)
             : base(name)
