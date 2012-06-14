@@ -34,7 +34,7 @@
             this.grpMergeFrom = new System.Windows.Forms.GroupBox();
             this.btnDatasourceBrowse = new System.Windows.Forms.Button();
             this.tbDatasource = new System.Windows.Forms.TextBox();
-            this.lblRubrics = new System.Windows.Forms.Label();
+            this.lblDatasource = new System.Windows.Forms.Label();
             this.btnTemplateBrowse = new System.Windows.Forms.Button();
             this.tbTemplate = new System.Windows.Forms.TextBox();
             this.lblTemplate = new System.Windows.Forms.Label();
@@ -200,7 +200,7 @@
             // 
             this.grpMergeFrom.Controls.Add(this.btnDatasourceBrowse);
             this.grpMergeFrom.Controls.Add(this.tbDatasource);
-            this.grpMergeFrom.Controls.Add(this.lblRubrics);
+            this.grpMergeFrom.Controls.Add(this.lblDatasource);
             this.grpMergeFrom.Controls.Add(this.btnTemplateBrowse);
             this.grpMergeFrom.Controls.Add(this.tbTemplate);
             this.grpMergeFrom.Controls.Add(this.lblTemplate);
@@ -231,14 +231,14 @@
             this.tbDatasource.TabIndex = 4;
             this.tbDatasource.TextChanged += new System.EventHandler(this.tbDatasource_TextChanged);
             // 
-            // lblRubrics
+            // lblDatasource
             // 
-            this.lblRubrics.AutoSize = true;
-            this.lblRubrics.Location = new System.Drawing.Point(6, 50);
-            this.lblRubrics.Name = "lblRubrics";
-            this.lblRubrics.Size = new System.Drawing.Size(65, 13);
-            this.lblRubrics.TabIndex = 3;
-            this.lblRubrics.Text = "&Datasource:";
+            this.lblDatasource.AutoSize = true;
+            this.lblDatasource.Location = new System.Drawing.Point(6, 50);
+            this.lblDatasource.Name = "lblDatasource";
+            this.lblDatasource.Size = new System.Drawing.Size(65, 13);
+            this.lblDatasource.TabIndex = 3;
+            this.lblDatasource.Text = "&Datasource:";
             // 
             // btnTemplateBrowse
             // 
@@ -273,7 +273,7 @@
             // 
             this.fdDatasourceOpen.DefaultExt = "xlsx";
             this.fdDatasourceOpen.Filter = "Microsoft Excel Workbook|*.xlsx;*.xls;*.xlsb|Excel Xml Workbook|*.xlsx|Excel Bina" +
-                "ry Workbook|*.xlsb|Excel 97-2003 Workbook|*.xls";
+    "ry Workbook|*.xlsb|Excel 97-2003 Workbook|*.xls";
             this.fdDatasourceOpen.ReadOnlyChecked = true;
             this.fdDatasourceOpen.RestoreDirectory = true;
             // 
@@ -336,7 +336,7 @@
         private System.Windows.Forms.FolderBrowserDialog fdSaveTo;
         private System.Windows.Forms.GroupBox grpMergeFrom;
         private System.Windows.Forms.TextBox tbDatasource;
-        private System.Windows.Forms.Label lblRubrics;
+        private System.Windows.Forms.Label lblDatasource;
         private System.Windows.Forms.Button btnTemplateBrowse;
         private System.Windows.Forms.TextBox tbTemplate;
         private System.Windows.Forms.Label lblTemplate;

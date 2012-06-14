@@ -551,6 +551,36 @@ namespace SouthernCluster.ReportCards
             }
         }
 
+        private void DisableControls()
+        {
+            grpMergeFrom.Enabled = false;
+            grpMergeType.Enabled = false;
+            btnMerge.Enabled = false;
+            btnPrint.Enabled = false;
+            btnCancel.Enabled = false;
+            grpNames.Enabled = false;
+        }
+
+        private void DisableControlsCancellable()
+        {
+            grpMergeFrom.Enabled = false;
+            grpMergeType.Enabled = false;
+            btnMerge.Enabled = false;
+            btnPrint.Enabled = false;
+            btnCancel.Enabled = true;
+            grpNames.Enabled = false;
+        }
+
+        private void EnableControls()
+        {
+            grpMergeFrom.Enabled = true;
+            grpMergeType.Enabled = true;
+            btnMerge.Enabled = true;
+            btnPrint.Enabled = true;
+            btnCancel.Enabled = false;
+            grpNames.Enabled = true;
+        }
+
         private void AutoFillDatasource() /* DELETE */
         {
             string path = templatepath;
@@ -602,6 +632,11 @@ namespace SouthernCluster.ReportCards
         {
             if (datasourcepath != "")
             {
+                DisableControls();
+                worker.BeginCloseTemplate(null, null);
+                worker.BeginCloseDatasource(null, null);
+                templategood = false;
+                datasourcegood = false;
                 ssStatusText.Text = "Opening datasource";
                 worker.BeginOpenDatasource(datasourcepath, SetNames, null);
             }
@@ -609,14 +644,14 @@ namespace SouthernCluster.ReportCards
 
         private void OpenTemplate()
         {
-            worker.BeginCloseTemplate(null, null);
-            worker.BeginCloseDatasource(null, null);
-            templategood = false;
-            datasourcegood = false;
-            btnMerge.Enabled = false;
-
             if (templatepath != "" && File.Exists(templatepath))
             {
+                DisableControls();
+                worker.BeginCloseTemplate(null, null);
+                worker.BeginCloseDatasource(null, null);
+                templategood = false;
+                datasourcegood = false;
+                btnMerge.Enabled = false;
                 ssStatusText.Text = "Opening template";
                 worker.BeginOpenTemplate(templatepath, TemplateOpened, null);
             }
@@ -639,19 +674,7 @@ namespace SouthernCluster.ReportCards
                 }
                 else
                 {
-                    tbTemplate.Enabled = false;
-                    btnTemplateBrowse.Enabled = false;
-                    tbDatasource.Enabled = false;
-                    btnDatasourceBrowse.Enabled = false;
-                    tbSaveTo.Enabled = false;
-                    btnSavetoBrowse.Enabled = false;
-                    clbNames.Enabled = false;
-                    btnMerge.Enabled = false;
-                    btnPrint.Enabled = false;
-                    cbSelectAll.Enabled = false;
-                    cbMergeToPDF.Enabled = false;
-                    cbMergeToPUB.Enabled = false;
-                    btnCancel.Enabled = true;
+                    DisableControlsCancellable();
 
                     string[] selnames = new string[numselected];
                     int index = 0;
@@ -694,19 +717,7 @@ namespace SouthernCluster.ReportCards
             worker.CancelAll();
             ssProgress.Visible = false;
             ssStatusText.Text = "Merge cancelled";
-            tbTemplate.Enabled = true;
-            btnTemplateBrowse.Enabled = true;
-            tbDatasource.Enabled = true;
-            btnDatasourceBrowse.Enabled = true;
-            tbSaveTo.Enabled = true;
-            btnSavetoBrowse.Enabled = true;
-            clbNames.Enabled = true;
-            btnMerge.Enabled = true;
-            btnPrint.Enabled = true;
-            cbSelectAll.Enabled = true;
-            cbMergeToPDF.Enabled = true;
-            cbMergeToPUB.Enabled = true;
-            btnCancel.Enabled = false;
+            EnableControls();
         }
 
         private void MergeComplete(object sender, ReportCardWorkerJob e)
@@ -719,19 +730,7 @@ namespace SouthernCluster.ReportCards
             {
                 ssProgress.Visible = false;
                 ssStatusText.Text = "Merge complete";
-                tbTemplate.Enabled = true;
-                btnTemplateBrowse.Enabled = true;
-                tbDatasource.Enabled = true;
-                btnDatasourceBrowse.Enabled = true;
-                tbSaveTo.Enabled = true;
-                btnSavetoBrowse.Enabled = true;
-                clbNames.Enabled = true;
-                btnMerge.Enabled = true;
-                btnPrint.Enabled = true;
-                cbSelectAll.Enabled = true;
-                cbMergeToPDF.Enabled = true;
-                cbMergeToPUB.Enabled = true;
-                btnCancel.Enabled = false;
+                EnableControls();
             }
         }
 
@@ -877,9 +876,8 @@ namespace SouthernCluster.ReportCards
                     this.initialnames = null;
 
                     datasourcegood = true;
-                    btnMerge.Enabled = true;
-                    btnPrint.Enabled = true;
                     ssStatusText.Text = "Ready";
+                    EnableControls();
                 }
             }
         }
@@ -1011,7 +1009,6 @@ namespace SouthernCluster.ReportCards
 
                 if (templatepath != "" && File.Exists(templatepath))
                 {
-                    AutoFillDatasource();
                     AutoFillSaveto();
                     OpenDatasource();
                 }
