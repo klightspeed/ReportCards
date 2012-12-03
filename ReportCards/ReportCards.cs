@@ -287,6 +287,10 @@
             this.fieldname = fieldname;
             this.usewingdingticks = usewingdingticks;
             this.mark = "";
+            foreach (Publisher.Cell cell in this.cells.Values)
+            {
+                cell.TextRange.Delete();
+            }
         }
 
         public void Update (DataRow data)
@@ -390,6 +394,14 @@
             unshaded_fgcolour = ParseColour(colours[1], 0x000000);
             shaded_bgcolour = ParseColour(colours[2], 0x000000);
             shaded_fgcolour = ParseColour(colours[3], 0xFFFFFF);
+            foreach (Publisher.Cell cell in this.cells.Values)
+            {
+                cell.Fill.BackColor.RGB = unshaded_bgcolour;
+                cell.Fill.BackColor.Transparency = 1;
+                cell.Fill.ForeColor.RGB = unshaded_bgcolour;
+                cell.Fill.ForeColor.Transparency = 1;
+                cell.TextRange.Font.Color.RGB = unshaded_fgcolour;
+            }
         }
 
         public void Update(DataRow data)
@@ -474,7 +486,9 @@
             this.shape = shape;
             this.parent = shape.Parent;
             this.fieldname = shape.AlternativeText.Trim();
-            if (this.fieldname != null && this.fieldname != "")
+            if (this.fieldname != null && 
+                this.fieldname.StartsWith("«") &&
+                this.fieldname.Contains("»"))
             {
                 this.fieldname = this.fieldname.Substring(1, this.fieldname.IndexOf("»") - 1);
                 this.width = (float)shape.Width;
@@ -497,11 +511,14 @@
         public void Update(DataRow data)
         {
             string val = null;
-            if (data.Table.Columns.Contains(fieldname))
+            if (fieldname != null)
             {
-                val = data[fieldname].ToString();
+                if (data.Table.Columns.Contains(fieldname))
+                {
+                    val = data[fieldname].ToString();
+                }
+                Value = val;
             }
-            Value = val;
         }
 
         public void Reset()

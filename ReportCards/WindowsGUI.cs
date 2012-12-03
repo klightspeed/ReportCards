@@ -383,12 +383,12 @@ namespace SouthernCluster.ReportCards
         public ReportCardWindowsGUIMerger(Options options)
         {
             InitializeComponent();
-            this.templategood = false;
-            this.datasourcegood = false;
+            this.TemplateGood = false;
+            this.DatasourceGood = false;
             this.templatepath = options.TemplateName;
             this.datasourcepath = options.DataSourceName;
             this.savetopath = options.SaveDir;
-            this.savetogood = Directory.Exists(options.SaveDir);
+            this.SaveToGood = Directory.Exists(options.SaveDir);
             this.exportpdf = options.ExportPdf;
             this.exportpub = options.ExportPub;
             this.usewingdingticks = options.UseWingdingTicks;
@@ -419,9 +419,6 @@ namespace SouthernCluster.ReportCards
 
         private void BrowseForTemplate()
         {
-            templategood = false;
-            datasourcegood = false;
-
             if (tbTemplate.Text != "")
             {
                 string path = tbTemplate.Text;
@@ -456,6 +453,8 @@ namespace SouthernCluster.ReportCards
             {
                 templatepath = fdTemplateOpen.FileName;
                 tbTemplate.Text = templatepath;
+                tbTemplate.Select(tbTemplate.Text.Length, 0);
+                tbTemplate.ScrollToCaret();
                 AutoFillSaveto();
                 OpenTemplate();
             }
@@ -463,7 +462,7 @@ namespace SouthernCluster.ReportCards
 
         private void BrowseForDatasource()
         {
-            datasourcegood = false;
+            DatasourceGood = false;
 
             if (!String.IsNullOrEmpty(tbDatasource.Text))
             {
@@ -507,6 +506,8 @@ namespace SouthernCluster.ReportCards
             {
                 datasourcepath = fdDatasourceOpen.FileName;
                 tbDatasource.Text = datasourcepath;
+                tbDatasource.Select(tbDatasource.Text.Length, 0);
+                tbDatasource.ScrollToCaret();
                 OpenDatasource();
             }
         }
@@ -543,8 +544,8 @@ namespace SouthernCluster.ReportCards
                 savetopath = fdSaveTo.SelectedPath;
                 tbSaveTo.Text = savetopath;
                 tbSaveTo.ScrollToCaret();
-                savetogood = true;
-                if (datasourcegood && templategood)
+                SaveToGood = true;
+                if (DatasourceGood && TemplateGood)
                 {
                     btnMerge.Enabled = true;
                 }
@@ -581,42 +582,6 @@ namespace SouthernCluster.ReportCards
             grpNames.Enabled = true;
         }
 
-        private void AutoFillDatasource() /* DELETE */
-        {
-            string path = templatepath;
-            string basename;
-
-            if (path.EndsWith(".pub"))
-            {
-                basename = path.Substring(0, path.Length - 4);
-            }
-            else
-            {
-                basename = path;
-            }
-
-            path = null;
-
-            if (File.Exists(basename + ".xlsx"))
-            {
-                path = basename + ".xlsx";
-            }
-            else if (File.Exists(basename + ".xls"))
-            {
-                path = basename + ".xls";
-            }
-            else if (File.Exists(basename + ".xlsb"))
-            {
-                path = basename + ".xlsb";
-            }
-
-            if (path != null)
-            {
-                datasourcepath = path;
-                tbDatasource.Text = path;
-            }
-        }
-
         private void AutoFillSaveto()
         {
             string path = Path.GetDirectoryName(templatepath);
@@ -624,7 +589,9 @@ namespace SouthernCluster.ReportCards
             {
                 savetopath = path;
                 tbSaveTo.Text = savetopath;
-                savetogood = true;
+                tbSaveTo.Select(tbSaveTo.Text.Length, 0);
+                tbSaveTo.ScrollToCaret();
+                SaveToGood = true;
             }
         }
 
@@ -633,10 +600,8 @@ namespace SouthernCluster.ReportCards
             if (datasourcepath != "")
             {
                 DisableControls();
-                worker.BeginCloseTemplate(null, null);
                 worker.BeginCloseDatasource(null, null);
-                templategood = false;
-                datasourcegood = false;
+                DatasourceGood = false;
                 ssStatusText.Text = "Opening datasource";
                 worker.BeginOpenDatasource(datasourcepath, SetNames, null);
             }
@@ -648,9 +613,7 @@ namespace SouthernCluster.ReportCards
             {
                 DisableControls();
                 worker.BeginCloseTemplate(null, null);
-                worker.BeginCloseDatasource(null, null);
-                templategood = false;
-                datasourcegood = false;
+                TemplateGood = false;
                 btnMerge.Enabled = false;
                 ssStatusText.Text = "Opening template";
                 worker.BeginOpenTemplate(templatepath, TemplateOpened, null);
@@ -659,7 +622,19 @@ namespace SouthernCluster.ReportCards
 
         private void MergeReports(bool print)
         {
-            if (datasourcegood && templategood && savetogood)
+            if (!TemplateGood)
+            {
+                MessageBox.Show("Please select a report template to merge", "No template or template invalid", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (!DatasourceGood)
+            {
+                MessageBox.Show("Please select a datasource", "No datasource or datasource invalid", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (!SaveToGood)
+            {
+                MessageBox.Show("Please select a directory to save to", "No save-to directory", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
             {
                 int numselected = clbNames.CheckedItems.Count;
                 if (cbMergeToPUB.CheckState == CheckState.Unchecked &&
@@ -856,7 +831,7 @@ namespace SouthernCluster.ReportCards
                 if (e.Error != null)
                 {
                     ssStatusText.Text = "Could not open datasource";
-                    MessageBox.Show("Could not open the specified datasource.\n" +
+                    MessageBox.Show("Could not open the datasource.\n" +
                                     "Please specify the Microsoft Excel workbook to use as a datasource.\n" +
                                     e.Error.ToString(), "Could not open datasource", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     btnDatasourceBrowse_Click(this, EventArgs.Empty);
@@ -875,7 +850,7 @@ namespace SouthernCluster.ReportCards
                     }
                     this.initialnames = null;
 
-                    datasourcegood = true;
+                    DatasourceGood = true;
                     ssStatusText.Text = "Ready";
                     EnableControls();
                 }
@@ -933,22 +908,17 @@ namespace SouthernCluster.ReportCards
                     pdPrint.PrintTicket.PageOrientation = PageOrientation.Portrait;
                 }
 
-                templategood = true;
+                this.TemplateGood = true;
 
                 if (worker.DataSourcePath != null)
                 {
                     datasourcepath = worker.DataSourcePath;
                     tbDatasource.Text = datasourcepath;
+                    tbDatasource.Select(tbDatasource.Text.Length, 0);
+                    tbDatasource.ScrollToCaret();
                 }
 
-                if (datasourcepath != null)
-                {
-                    OpenDatasource();
-                }
-                else
-                {
-                    btnDatasourceBrowse_Click(this, EventArgs.Empty);
-                }
+                btnDatasourceBrowse_Click(this, EventArgs.Empty);
             }
         }
 
@@ -958,7 +928,7 @@ namespace SouthernCluster.ReportCards
             btnPrint.Enabled = false;
             btnCancel.Enabled = false;
             ssProgress.Visible = false;
-            ssStatusText.Text = "Ready";
+            ssStatusText.Text = "Loading";
             cbMergeToPDF.Checked = exportpdf;
             cbMergeToPUB.Checked = exportpub;
             if (savetopath != null)
@@ -968,6 +938,8 @@ namespace SouthernCluster.ReportCards
             if (templatepath != null)
             {
                 tbTemplate.Text = templatepath;
+                tbTemplate.Select(tbTemplate.Text.Length, 0);
+                tbTemplate.ScrollToCaret();
                 if (savetopath == null)
                 {
                     AutoFillSaveto();
@@ -994,62 +966,6 @@ namespace SouthernCluster.ReportCards
         private void btnSavetoBrowse_Click(object sender, EventArgs e)
         {
             BrowseForSaveto();
-        }
-
-        private void tbTemplate_TextChanged(object sender, EventArgs e)
-        {
-            if (tbTemplate.Text != templatepath)
-            {
-                worker.CancelAll();
-                templatepath = tbTemplate.Text;
-                templategood = false;
-                datasourcegood = false;
-                btnMerge.Enabled = false;
-                btnPrint.Enabled = false;
-
-                if (templatepath != "" && File.Exists(templatepath))
-                {
-                    AutoFillSaveto();
-                    OpenDatasource();
-                }
-            }
-        }
-
-        private void tbDatasource_TextChanged(object sender, EventArgs e)
-        {
-            if (tbDatasource.Text != datasourcepath)
-            {
-                worker.CancelAll();
-                datasourcepath = tbDatasource.Text;
-                datasourcegood = false;
-                btnMerge.Enabled = false;
-                btnPrint.Enabled = false;
-
-                if (datasourcepath != "" && File.Exists(datasourcepath))
-                {
-                    OpenDatasource();
-                }
-            }
-        }
-
-        private void tbSaveTo_TextChanged(object sender, EventArgs e)
-        {
-            if (tbSaveTo.Text != savetopath)
-            {
-                savetogood = false;
-                savetopath = tbSaveTo.Text;
-                btnMerge.Enabled = false;
-                btnPrint.Enabled = false;
-
-                if (savetopath != "" && Directory.Exists(savetopath))
-                {
-                    savetogood = true;
-                    if (datasourcegood && templategood)
-                    {
-                        btnMerge.Enabled = true;
-                    }
-                }
-            }
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -1085,6 +1001,66 @@ namespace SouthernCluster.ReportCards
             if (pdPrint.ShowDialog() == true)
             {
                 MergeReports(true);
+            }
+        }
+
+        private bool TemplateGood
+        {
+            get
+            {
+                return templategood;
+            }
+            set
+            {
+                this.templategood = value;
+                if (value)
+                {
+                    this.tbTemplate.BackColor = Color.LightGreen;
+                }
+                else
+                {
+                    this.tbTemplate.BackColor = Color.LightPink;
+                }
+            }
+        }
+
+        private bool DatasourceGood
+        {
+            get
+            {
+                return datasourcegood;
+            }
+            set
+            {
+                this.datasourcegood = value;
+                if (value)
+                {
+                    this.tbDatasource.BackColor = Color.LightGreen;
+                }
+                else
+                {
+                    this.tbDatasource.BackColor = Color.LightPink;
+                }
+            }
+        }
+
+        private bool SaveToGood
+        {
+            get
+            {
+                return savetogood;
+            }
+            set
+            {
+                this.savetogood = value;
+                if (value)
+                {
+                    this.tbSaveTo.BackColor = Color.LightGreen;
+                }
+                else
+                {
+                    this.tbSaveTo.BackColor = Color.LightPink;
+                }
             }
         }
     }
