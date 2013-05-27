@@ -6,7 +6,9 @@
     using System.Data;
     using System.Data.OleDb;
     using System.IO;
+    using System.ComponentModel;
 
+    [System.ComponentModel.DesignerCategory("Code")]
     internal class ReportCardWorksheet : DataTable
     {
         public ReportCardWorksheet()
@@ -235,28 +237,46 @@
     {
         private DataTable table;
 
-        public ReportCardData(string name)
+        public ReportCardData(string name, string filterstring)
         {
             ReportCardMarksTable marks = null;
 
             try
             {
-                table = new DataTable();
+                using (DataTable table = new DataTable())
+                {
+                    if (name.StartsWith("grubrics:"))
+                    {
+                        marks = new GoogleMarksTable(name.Substring(9));
+                    }
+                    else if (name.EndsWith(".xlsx") || name.EndsWith(".xlsb") || name.EndsWith(".xls"))
+                    {
+                        if (name.Contains("*"))
+                        {
+                            marks = new ExcelDirectoryMarksTable(name);
+                        }
+                        else
+                        {
+                            marks = new ExcelMarksTable(name);
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentException();
+                    }
 
-                if (name.StartsWith("grubrics:"))
-                {
-                    marks = new GoogleMarksTable(name.Substring(9));
-                }
-                else if (name.EndsWith(".xlsx") || name.EndsWith(".xlsb") || name.EndsWith(".xls"))
-                {
-                    marks = new ExcelMarksTable(name);
-                }
-                else
-                {
-                    throw new ArgumentException();
-                }
+                    marks.Fill(table);
 
-                marks.Fill(table);
+                    using (DataView view = new DataView(table))
+                    {
+                        if (!String.IsNullOrEmpty(filterstring))
+                        {
+                            view.RowFilter = filterstring;
+                        }
+
+                        this.table = view.ToTable();
+                    }
+                }
             }
             finally
             {
@@ -303,6 +323,7 @@
             }
         }
 
+        /*
         public DataRow this[int index]
         {
             get
@@ -310,12 +331,13 @@
                 return table.Rows[index];
             }
         }
+         */
 
         public int Count
         {
             get
             {
-                return table.Rows.Count;
+                return Names.Length;
             }
         }
 
@@ -332,7 +354,6 @@
                 return ret.ToArray();
             }
         }
-
 
         IEnumerator IEnumerable.GetEnumerator()
         {

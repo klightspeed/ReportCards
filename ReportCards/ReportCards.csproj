@@ -90,12 +90,9 @@
     <Resource Include="Dependencies\MSXML2.dll.gz" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExcelRubrics.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="GoogleRubrics.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="ExcelDirectoryRubrics.cs" />
+    <Compile Include="ExcelRubrics.cs" />
+    <Compile Include="GoogleRubrics.cs" />
     <Compile Include="AppMain.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -103,9 +100,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ReportCardData.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="ReportCardData.cs" />
     <Compile Include="WindowsGUI.cs">
       <SubType>Form</SubType>
     </Compile>

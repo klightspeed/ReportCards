@@ -85,24 +85,27 @@
             ReportCardRangeCollection ranges = new ReportCardRangeCollection();
             foreach (string command in commandstring.Split(new char[] { '\n', '\r' }))
             {
-                int colonpos = command.IndexOf(":");
-                int equalpos = command.IndexOf("=");
-                if (command.Contains("=") && (colonpos == -1 || equalpos < colonpos))
+                if (!command.StartsWith("#"))
                 {
-                    Console.WriteLine("Parsing variable: {0}\n", command);
-                    KeyValuePair<string, string> var = ReportCardRange.ParseVariable(command);
-                    if (var.Key != null)
+                    int colonpos = command.IndexOf(":");
+                    int equalpos = command.IndexOf("=");
+                    if (command.Contains("=") && (colonpos == -1 || equalpos < colonpos))
                     {
-                        ranges.SetVar(var.Key, var.Value);
+                        Console.WriteLine("Parsing variable: {0}\n", command);
+                        KeyValuePair<string, string> var = ReportCardRange.ParseVariable(command);
+                        if (var.Key != null)
+                        {
+                            ranges.SetVar(var.Key, var.Value);
+                        }
                     }
-                }
-                else if (command.Contains(":"))
-                {
-                    Console.WriteLine("Parsing command: {0}", command);
-                    ReportCardRange range = ReportCardRange.ParseCommand(command, ranges);
-                    if (range != null)
+                    else if (command.Contains(":"))
                     {
-                        ranges.Add(range);
+                        Console.WriteLine("Parsing command: {0}", command);
+                        ReportCardRange range = ReportCardRange.ParseCommand(command, ranges);
+                        if (range != null)
+                        {
+                            ranges.Add(range);
+                        }
                     }
                 }
             }
@@ -674,6 +677,7 @@
         private ReportCardData data;
         private string curname;
         private string datasourcename;
+        private string datafilter;
 
         public ReportCard(Publisher.Application pubapp, Document doc, string pubname, bool usewingdingticks)
         {
@@ -684,6 +688,8 @@
             this.masterpages = new Page[doc.MasterPages.Count];
             this.ranges = ReportCardRange.ParseCommands(doc);
             this.datasourcename = this.ranges.GetVar("DATASOURCE");
+            this.datafilter = this.ranges.GetVar("DATAFILTER");
+
             if (this.datasourcename == null)
             {
                 string basename;
@@ -710,6 +716,12 @@
                     this.datasourcename = basename + ".xlsb";
                 }
             }
+
+            if (!(this.datasourcename.Contains("\\") || this.datasourcename.Contains("/") || this.datasourcename.Contains(":")))
+            {
+                this.datasourcename = Path.Combine(Path.GetDirectoryName(pubname), this.datasourcename);
+            }
+
             int i = 0;
 
             foreach (Page page in doc.MasterPages)
@@ -1129,6 +1141,14 @@
             }
         }
 
+        public string DataFilter
+        {
+            get
+            {
+                return datafilter;
+            }
+        }
+
         public string[] Names
         {
             get
@@ -1361,7 +1381,7 @@
                                     {
                                         data.Dispose();
                                     }
-                                    data = new ReportCardData(job.Name);
+                                    data = new ReportCardData(job.Name, DataFilter);
                                     job.Data = data.Names;
                                     if (card != null)
                                     {
@@ -1573,6 +1593,21 @@
                 if (card != null)
                 {
                     return card.DataSourceName;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public string DataFilter
+        {
+            get
+            {
+                if (card != null)
+                {
+                    return card.DataFilter;
                 }
                 else
                 {

@@ -323,7 +323,7 @@ namespace SouthernCluster.ReportCards
                             return 1;
                         }
                     }
-                    using (data = new ReportCardData(options.DataSourceName))
+                    using (data = new ReportCardData(options.DataSourceName, card.DataFilter))
                     {
                         Console.Out.Write("Done\n");
                         if (options.Names.Count == 0)
@@ -916,9 +916,12 @@ namespace SouthernCluster.ReportCards
                     tbDatasource.Text = datasourcepath;
                     tbDatasource.Select(tbDatasource.Text.Length, 0);
                     tbDatasource.ScrollToCaret();
+                    OpenDatasource();
                 }
-
-                btnDatasourceBrowse_Click(this, EventArgs.Empty);
+                else
+                {
+                    BrowseForDatasource();
+                }
             }
         }
 

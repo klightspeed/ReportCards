@@ -7,6 +7,7 @@
     using System.Data.Odbc;
     using System.IO;
 
+    [System.ComponentModel.DesignerCategory("Code")]
     internal class ExcelWorksheet : ReportCardWorksheet
     {
         public ExcelWorksheet()
@@ -53,6 +54,7 @@
             : base(name)
         {
             string connstr;
+            
             if (name.EndsWith(".xlsx") || name.EndsWith(".xlsb") || name.EndsWith(".xls") || name.EndsWith(".xlsm"))
             {
                 connstr = "Driver={Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)};DBQ=" + name;
@@ -61,6 +63,7 @@
             {
                 throw new ArgumentException();
             }
+
             using (OdbcConnection conn = new OdbcConnection(connstr))
             {
                 conn.Open();

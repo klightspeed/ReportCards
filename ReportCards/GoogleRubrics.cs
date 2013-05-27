@@ -12,6 +12,7 @@
     using System.Collections.Specialized;
     using System.Threading;
 
+    [System.ComponentModel.DesignerCategory("Code")]
     internal class GoogleWorksheet : ReportCardWorksheet
     {
         public GoogleWorksheet()
