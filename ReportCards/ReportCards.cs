@@ -289,6 +289,8 @@
     internal class ReportCardTickRange: IReportCardMergeEntry
     {
         private Dictionary<string,Publisher.Cell> cells;
+        private string starcell;
+        private Publisher.Font starcellfont;
         private string fieldname;
         private string mark;
         private bool usewingdingticks;
@@ -298,13 +300,22 @@
             string fieldname,
             bool usewingdingticks
         ){
-            this.cells = cells;
+            this.cells = new Dictionary<string,Publisher.Cell>();
             this.fieldname = fieldname;
             this.usewingdingticks = usewingdingticks;
             this.mark = "";
-            foreach (Publisher.Cell cell in this.cells.Values)
+            foreach (KeyValuePair<string, Publisher.Cell> kvp in cells)
             {
-                cell.TextRange.Delete();
+                string key = kvp.Key;
+                
+                if (key.EndsWith("*"))
+                {
+                    key = key.Replace("*", "");
+                    starcell = key;
+                    starcellfont = kvp.Value.TextRange.MajorityFont;
+                }
+
+                this.cells[key] = kvp.Value;
             }
         }
 
@@ -331,9 +342,16 @@
             }
             set
             {
-                if (mark != "" && cells.ContainsKey(mark) && cells[mark] != null)
+                if (mark != "")
                 {
-                    cells[mark].TextRange.Delete();
+                    if (cells.ContainsKey(mark) && cells[mark] != null)
+                    {
+                        cells[mark].TextRange.Delete();
+                    }
+                    else if (starcell != null && cells.ContainsKey(starcell) && cells[starcell] != null)
+                    {
+                        cells[starcell].TextRange.Delete();
+                    }
                 }
 
                 if (value != null)
@@ -351,6 +369,12 @@
                         {
                             cells[mark].TextRange.Text = "✓"; // Unicode Check Mark
                         }
+                    }
+                    else if (starcell != null && cells.ContainsKey(starcell) && cells[starcell] != null)
+                    {
+                        cells[starcell].TextRange.Delete();
+                        cells[starcell].TextRange.Text = mark;
+                        cells[starcell].TextRange.Font = starcellfont;
                     }
                     else
                     {
