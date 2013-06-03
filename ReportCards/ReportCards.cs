@@ -1,6 +1,7 @@
 ﻿namespace SouthernCluster.ReportCards
 {
     using System;
+    using System.Linq;
     using System.Text;
     using System.Windows.Forms;
     using System.Collections;
@@ -45,6 +46,17 @@
         public void SetVar(string key, string val)
         {
             variables[key.ToUpper()] = val;
+        }
+
+        public IEnumerable<KeyValuePair<string, string>> Vars
+        {
+            get
+            {
+                foreach (KeyValuePair<string, string> var in variables)
+                {
+                    yield return var;
+                }
+            }
         }
     }
     
@@ -109,7 +121,7 @@
                     }
                 }
             }
-            if (ranges.Count >= 1)
+            if (ranges.Count >= 1 || ranges.Vars.Count() >= 1)
             {
                 return ranges;
             }
@@ -717,7 +729,7 @@
                 }
             }
 
-            if (!(this.datasourcename.Contains("\\") || this.datasourcename.Contains("/") || this.datasourcename.Contains(":")))
+            if (this.datasourcename != null && !(this.datasourcename.Contains("\\") || this.datasourcename.Contains("/") || this.datasourcename.Contains(":")))
             {
                 this.datasourcename = Path.Combine(Path.GetDirectoryName(pubname), this.datasourcename);
             }
@@ -1625,6 +1637,14 @@
             set
             {
                 usewingdingticks = value;
+            }
+        }
+
+        public IEnumerable<DataRow> Data
+        {
+            get
+            {
+                return data.AsEnumerable();
             }
         }
     }

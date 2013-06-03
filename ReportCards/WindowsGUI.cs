@@ -618,6 +618,11 @@ namespace SouthernCluster.ReportCards
                 ssStatusText.Text = "Opening template";
                 worker.BeginOpenTemplate(templatepath, TemplateOpened, null);
             }
+            else
+            {
+                ssStatusText.Text = "Could not open template";
+                BrowseForTemplate();
+            }
         }
 
         private void MergeReports(bool print)
@@ -1065,6 +1070,38 @@ namespace SouthernCluster.ReportCards
                     this.tbSaveTo.BackColor = Color.LightPink;
                 }
             }
+        }
+
+        private void btnShowTable_Click(object sender, EventArgs e)
+        {
+            Dictionary<string, bool> selected = new Dictionary<string,bool>();
+
+            foreach (object item in this.clbNames.Items)
+            {
+                selected[(string)item] = false;
+            }
+
+            foreach (object item in this.clbNames.CheckedItems)
+            {
+                selected[(string)item] = true;
+            }
+
+            DataTableGUI dataTableGUI = new DataTableGUI(worker.Data, selected);
+
+            foreach (KeyValuePair<string, bool> sel in dataTableGUI.SelectedEntries)
+            {
+                if (sel.Value)
+                {
+                    this.clbNames.SetItemCheckState(this.clbNames.Items.IndexOf(sel.Key), CheckState.Checked);
+                }
+                else
+                {
+                    this.clbNames.SetItemCheckState(this.clbNames.Items.IndexOf(sel.Key), CheckState.Unchecked);
+                }
+            }
+
+            dataTableGUI.ShowDialog();
+            dataTableGUI.Dispose();
         }
     }
 }

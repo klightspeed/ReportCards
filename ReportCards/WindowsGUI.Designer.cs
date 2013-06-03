@@ -21,6 +21,7 @@
             this.grpMergeType = new System.Windows.Forms.GroupBox();
             this.btnSavetoBrowse = new System.Windows.Forms.Button();
             this.lblSaveTo = new System.Windows.Forms.Label();
+            this.tbSaveTo = new System.Windows.Forms.TextBox();
             this.cbMergeToPDF = new System.Windows.Forms.CheckBox();
             this.cbMergeToPUB = new System.Windows.Forms.CheckBox();
             this.btnCancel = new System.Windows.Forms.Button();
@@ -32,14 +33,14 @@
             this.fdSaveTo = new System.Windows.Forms.FolderBrowserDialog();
             this.grpMergeFrom = new System.Windows.Forms.GroupBox();
             this.btnDatasourceBrowse = new System.Windows.Forms.Button();
+            this.tbDatasource = new System.Windows.Forms.TextBox();
             this.lblDatasource = new System.Windows.Forms.Label();
             this.btnTemplateBrowse = new System.Windows.Forms.Button();
+            this.tbTemplate = new System.Windows.Forms.TextBox();
             this.lblTemplate = new System.Windows.Forms.Label();
             this.fdDatasourceOpen = new System.Windows.Forms.OpenFileDialog();
             this.btnPrint = new System.Windows.Forms.Button();
-            this.tbSaveTo = new System.Windows.Forms.TextBox();
-            this.tbDatasource = new System.Windows.Forms.TextBox();
-            this.tbTemplate = new System.Windows.Forms.TextBox();
+            this.btnShowTable = new System.Windows.Forms.Button();
             this.grpNames.SuspendLayout();
             this.grpMergeType.SuspendLayout();
             this.ssMergeStatus.SuspendLayout();
@@ -52,18 +53,19 @@
             this.clbNames.FormattingEnabled = true;
             this.clbNames.Location = new System.Drawing.Point(6, 42);
             this.clbNames.Name = "clbNames";
-            this.clbNames.Size = new System.Drawing.Size(150, 124);
+            this.clbNames.Size = new System.Drawing.Size(150, 109);
             this.clbNames.TabIndex = 0;
             this.clbNames.ThreeDCheckBoxes = true;
             this.clbNames.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.clbNames_ItemCheck);
             // 
             // grpNames
             // 
+            this.grpNames.Controls.Add(this.btnShowTable);
             this.grpNames.Controls.Add(this.cbSelectAll);
             this.grpNames.Controls.Add(this.clbNames);
             this.grpNames.Location = new System.Drawing.Point(320, 12);
             this.grpNames.Name = "grpNames";
-            this.grpNames.Size = new System.Drawing.Size(164, 179);
+            this.grpNames.Size = new System.Drawing.Size(164, 184);
             this.grpNames.TabIndex = 2;
             this.grpNames.TabStop = false;
             this.grpNames.Text = "&Reports to Merge";
@@ -111,6 +113,16 @@
             this.lblSaveTo.Size = new System.Drawing.Size(51, 13);
             this.lblSaveTo.TabIndex = 2;
             this.lblSaveTo.Text = "&Save To:";
+            // 
+            // tbSaveTo
+            // 
+            this.tbSaveTo.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.tbSaveTo.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystemDirectories;
+            this.tbSaveTo.Location = new System.Drawing.Point(77, 42);
+            this.tbSaveTo.Name = "tbSaveTo";
+            this.tbSaveTo.ReadOnly = true;
+            this.tbSaveTo.Size = new System.Drawing.Size(159, 20);
+            this.tbSaveTo.TabIndex = 3;
             // 
             // cbMergeToPDF
             // 
@@ -211,6 +223,16 @@
             this.btnDatasourceBrowse.UseVisualStyleBackColor = true;
             this.btnDatasourceBrowse.Click += new System.EventHandler(this.btnDatasourceBrowse_Click);
             // 
+            // tbDatasource
+            // 
+            this.tbDatasource.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.tbDatasource.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
+            this.tbDatasource.Location = new System.Drawing.Point(77, 47);
+            this.tbDatasource.Name = "tbDatasource";
+            this.tbDatasource.ReadOnly = true;
+            this.tbDatasource.Size = new System.Drawing.Size(159, 20);
+            this.tbDatasource.TabIndex = 4;
+            // 
             // lblDatasource
             // 
             this.lblDatasource.AutoSize = true;
@@ -229,6 +251,16 @@
             this.btnTemplateBrowse.Text = "Browse";
             this.btnTemplateBrowse.UseVisualStyleBackColor = true;
             this.btnTemplateBrowse.Click += new System.EventHandler(this.btnTemplateBrowse_Click);
+            // 
+            // tbTemplate
+            // 
+            this.tbTemplate.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.tbTemplate.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
+            this.tbTemplate.Location = new System.Drawing.Point(77, 19);
+            this.tbTemplate.Name = "tbTemplate";
+            this.tbTemplate.ReadOnly = true;
+            this.tbTemplate.Size = new System.Drawing.Size(159, 20);
+            this.tbTemplate.TabIndex = 1;
             // 
             // lblTemplate
             // 
@@ -258,35 +290,15 @@
             this.btnPrint.UseVisualStyleBackColor = true;
             this.btnPrint.Click += new System.EventHandler(this.btnPrint_Click);
             // 
-            // tbSaveTo
+            // btnShowTable
             // 
-            this.tbSaveTo.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.tbSaveTo.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystemDirectories;
-            this.tbSaveTo.Location = new System.Drawing.Point(77, 42);
-            this.tbSaveTo.Name = "tbSaveTo";
-            this.tbSaveTo.ReadOnly = true;
-            this.tbSaveTo.Size = new System.Drawing.Size(159, 20);
-            this.tbSaveTo.TabIndex = 3;
-            // 
-            // tbDatasource
-            // 
-            this.tbDatasource.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.tbDatasource.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
-            this.tbDatasource.Location = new System.Drawing.Point(77, 47);
-            this.tbDatasource.Name = "tbDatasource";
-            this.tbDatasource.ReadOnly = true;
-            this.tbDatasource.Size = new System.Drawing.Size(159, 20);
-            this.tbDatasource.TabIndex = 4;
-            // 
-            // tbTemplate
-            // 
-            this.tbTemplate.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
-            this.tbTemplate.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystem;
-            this.tbTemplate.Location = new System.Drawing.Point(77, 19);
-            this.tbTemplate.Name = "tbTemplate";
-            this.tbTemplate.ReadOnly = true;
-            this.tbTemplate.Size = new System.Drawing.Size(159, 20);
-            this.tbTemplate.TabIndex = 1;
+            this.btnShowTable.Location = new System.Drawing.Point(6, 155);
+            this.btnShowTable.Name = "btnShowTable";
+            this.btnShowTable.Size = new System.Drawing.Size(150, 23);
+            this.btnShowTable.TabIndex = 3;
+            this.btnShowTable.Text = "Show Table";
+            this.btnShowTable.UseVisualStyleBackColor = true;
+            this.btnShowTable.Click += new System.EventHandler(this.btnShowTable_Click);
             // 
             // ReportCardWindowsGUIMerger
             // 
@@ -346,5 +358,6 @@
         private System.Windows.Forms.TextBox tbSaveTo;
         private System.Windows.Forms.TextBox tbDatasource;
         private System.Windows.Forms.TextBox tbTemplate;
+        private System.Windows.Forms.Button btnShowTable;
     }
 }

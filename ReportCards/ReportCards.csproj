@@ -90,6 +90,12 @@
     <Resource Include="Dependencies\MSXML2.dll.gz" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataTableGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DataTableGUI.Designer.cs">
+      <DependentUpon>DataTableGUI.cs</DependentUpon>
+    </Compile>
     <Compile Include="ExcelDirectoryRubrics.cs" />
     <Compile Include="ExcelRubrics.cs" />
     <Compile Include="GoogleRubrics.cs" />
@@ -143,6 +149,7 @@
     <Reference Include="ReachFramework" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Printing" />
@@ -153,6 +160,9 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="DataTableGUI.resx">
+      <DependentUpon>DataTableGUI.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
