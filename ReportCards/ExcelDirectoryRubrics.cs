@@ -24,15 +24,35 @@ namespace SouthernCluster.ReportCards
 
         private void LoadWorkbook(string filename)
         {
-            string connstr = "Driver={Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)};DBQ=" + filename;
-
-            using (OdbcConnection conn = new OdbcConnection(connstr))
+            string tempname = Path.GetTempFileName();
+            try
             {
-                conn.Open();
-                List<string> sheets = GetSheets(conn);
-                if (sheets.Contains("Marks"))
+                File.Copy(filename, tempname, true);
+                string connstr = "Driver={Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)};DBQ=" + tempname;
+
+                using (OdbcConnection conn = new OdbcConnection(connstr))
                 {
-                    LoadMarksSheet(filename, conn);
+                    conn.Open();
+                    List<string> sheets = GetSheets(conn);
+                    if (sheets.Contains("Marks"))
+                    {
+                        LoadMarksSheet(filename, conn);
+                    }
+                    conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to load Excel file " + filename, ex);
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(tempname);
+                }
+                catch
+                {
                 }
             }
         }
@@ -112,7 +132,7 @@ namespace SouthernCluster.ReportCards
 
             foreach (string filename in Directory.GetFiles(Path.GetDirectoryName(id), Path.GetFileName(id), SearchOption.TopDirectoryOnly))
             {
-                if (filename.EndsWith(".xlsx") || filename.EndsWith(".xlsb") || filename.EndsWith(".xls") || filename.EndsWith(".xlsm"))
+                if (!filename.Contains("~$") && (filename.EndsWith(".xlsx") || filename.EndsWith(".xlsb") || filename.EndsWith(".xls") || filename.EndsWith(".xlsm")))
                 {
                     LoadWorkbook(filename);
                 }

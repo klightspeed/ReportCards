@@ -59,8 +59,19 @@
             }
         }
     }
-    
-    internal class ReportCardRange
+
+    public class InvalidReportCardRangeException : InvalidOperationException
+    {
+        public ReportCardRange Range;
+
+        public InvalidReportCardRangeException(ReportCardRange range, string message)
+            : base(message + "\nSpecifier string was:\n" + range.specifierstring)
+        {
+            this.Range = range;
+        }
+    }
+
+    public class ReportCardRange
     {
         public int col = 0;
         public int row = 0;
@@ -72,8 +83,9 @@
         public string[] marks = null;
         public string fieldname = null;
         public string[] colours = { "white", "black", "black", "white" };
+        public string specifierstring = null;
 
-        public static ReportCardRangeCollection ParseCommands(Publisher.Document doc)
+        internal static ReportCardRangeCollection ParseCommands(Publisher.Document doc)
         {
             ReportCardRangeCollection ret = null;
             foreach (Publisher.Shape shape in doc.ScratchArea.Shapes)
@@ -92,7 +104,7 @@
             return null;
         }
 
-        public static ReportCardRangeCollection ParseCommands(string commandstring)
+        internal static ReportCardRangeCollection ParseCommands(string commandstring)
         {
             ReportCardRangeCollection ranges = new ReportCardRangeCollection();
             foreach (string command in commandstring.Split(new char[] { '\n', '\r' }))
@@ -131,40 +143,20 @@
             }
         }
 
-        public static KeyValuePair<string, string> ParseVariable(string commandstring)
+        internal static KeyValuePair<string, string> ParseVariable(string commandstring)
         {
             string[] args = commandstring.Split(new char[] { '=' }, 2);
             return new KeyValuePair<string, string>(args[0].ToUpper(), args[1]);
         }
 
-        public static ReportCardRange ParseCommand(string commandstring, ReportCardRangeCollection ranges)
+        internal static ReportCardRange ParseCommand(string commandstring, ReportCardRangeCollection ranges)
         {
-            ReportCardRange range;
-            range = new ReportCardRange();
-            if (!range.TryParseCommand(commandstring, ranges))
-            {
-                return null;
-            }
-            return range;
+            return new ReportCardRange(commandstring, ranges);
         }
 
-        public ReportCardRange()
+        private ReportCardRange(string commandstring, ReportCardRangeCollection ranges)
         {
-            this.marks = null;
-            this.marktype = null;
-            this.fieldname = null;
-        }
-
-        public ReportCardRange(string commandstring, ReportCardRangeCollection ranges)
-        {
-            if (!TryParseCommand(commandstring, ranges))
-            {
-                throw new ArgumentException();
-            }
-        }
-
-        public bool TryParseCommand(string commandstring, ReportCardRangeCollection ranges)
-        {
+            specifierstring = commandstring;
             string[] args = commandstring.Split(new char[] { ':' });
             marktype = args[0].ToUpper().Trim();
             Int32.TryParse(args[1], out tblno);
@@ -175,12 +167,14 @@
             Int32.TryParse(args[5], out height);
             marks = args[6].Trim().Split(new char[] { ',' });
             fieldname = args[7].Trim();
+
             if (ranges.HasVar("unshaded-colour"))
             {
                 string[] unshaded = ranges.GetVar("unshaded-colour").Split(new char[] { ',' });
                 colours[0] = unshaded[1].Trim();
                 colours[1] = unshaded[0].Trim();
             }
+
             if (ranges.HasVar("shaded-colour"))
             {
                 string[] shaded = ranges.GetVar("shaded-colour").Split(new char[] { ',' });
@@ -190,35 +184,28 @@
 
             if (col <= 0)
             {
-                Console.WriteLine("  Column <= 0");
-                return false;
+                throw new InvalidReportCardRangeException(this, "Column is less than or equal to zero");
             }
-            if (row <= 0)
+            else if (row <= 0)
             {
-                Console.WriteLine("  Row <= 0");
-                return false;
+                throw new InvalidReportCardRangeException(this, "Row is less than or equal to zero");
             }
-            if (marktype != "TICK" && marktype != "SHADE" && marktype != "TABLENAME")
+            else if (marktype != "TICK" && marktype != "SHADE" && marktype != "TABLENAME")
             {
-                Console.WriteLine("  Unrecognized type {0}", marktype);
-                return false;
+                throw new InvalidReportCardRangeException(this, String.Format("Unrecognized range type {0}", marktype));
             }
-            if (marktype != "TABLENAME" && fieldname == "")
+            else if (marktype != "TABLENAME" && fieldname == "")
             {
-                Console.WriteLine("  Field name is empty");
-                return false;
+                throw new InvalidReportCardRangeException(this, "Field name is empty");
             }
-            if (marktype != "TABLENAME" && width != marks.Length && height != marks.Length)
+            else if (marktype != "TABLENAME" && width != marks.Length && height != marks.Length)
             {
-                Console.WriteLine("  Size of selection does not match number of marks");
-                return false;
+                throw new InvalidReportCardRangeException(this, "Size of selection does not match number of marks");
             }
-            if (marktype != "TABLENAME" && width != 1 && height != 1)
+            else if (marktype != "TABLENAME" && width != 1 && height != 1)
             {
-                Console.WriteLine("  Selection must be a single row or single column");
-                return false;
+                throw new InvalidReportCardRangeException(this, "Selection must be a single row or a single column");
             }
-            return true;
         }
     }
 
@@ -838,7 +825,7 @@
                             range.col <= table.Value.Width &&
                             (range.width == table.Value.Width || range.width == 0) &&
                             table.Value[range.row, range.col] != null &&
-                            table.Value[range.row, range.col].TextRange.Text.Contains(range.fieldname))
+                            table.Value[range.row, range.col].TextRange.Text.ToUpper().Contains(range.fieldname.ToUpper()))
                         {
                             bool matches = true;
                             foreach (string mark in range.marks)
@@ -897,7 +884,15 @@
                     int col = range.col;
                     for (int i = 0; i < range.marks.Length; i++)
                     {
-                        markcells.Add(range.marks[i], cells[range.tblno][row, col]);
+                        Cell cell = cells[range.tblno][row, col];
+                        if (cell == null)
+                        {
+                            throw new InvalidReportCardRangeException(range, String.Format(
+                                "Unable to retrieve cell in row {0} column {1} of table {2}",
+                                row, col, curtblno
+                            ));
+                        }
+                        markcells.Add(range.marks[i], cell);
                         if (range.width == 0)
                         {
                             row++;
