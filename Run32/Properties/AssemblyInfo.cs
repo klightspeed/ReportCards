@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Run32")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Townsville Catholic Education Office")]
 [assembly: AssemblyProduct("Run32")]
-[assembly: AssemblyCopyright("Copyright © Ben Peddell 2012")]
+[assembly: AssemblyCopyright("Copyright © 2013 Townsville Catholic Education Office")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
