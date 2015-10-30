@@ -814,6 +814,7 @@
                 {
                     range.tblno = curtblno;
                 }
+
                 if (range.marktype == "TABLENAME")
                 {
                     Console.WriteLine("Trying to find table for tablename\n");
@@ -874,8 +875,7 @@
                         }
                     }
                 }
-
-                if (cells.ContainsKey(range.tblno) &&
+                else if (cells.ContainsKey(range.tblno) &&
                     range.row + range.height <= cells[range.tblno].Height + 1 &&
                     range.col + range.width <= cells[range.tblno].Width + 1)
                 {
@@ -889,7 +889,7 @@
                         {
                             throw new InvalidReportCardRangeException(range, String.Format(
                                 "Unable to retrieve cell in row {0} column {1} of table {2}",
-                                row, col, curtblno
+                                row, col, range.tblno
                             ));
                         }
                         markcells.Add(range.marks[i], cell);
