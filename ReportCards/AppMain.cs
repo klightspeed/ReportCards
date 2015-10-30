@@ -15,6 +15,53 @@ namespace SouthernCluster.ReportCards
 {
     public static class AppMain
     {
+        public static string EscapeCommandLineArgument(string arg)
+        {
+            StringBuilder sb = new StringBuilder();
+            StringReader rdr = new StringReader(arg);
+            int c;
+            sb.Append('"');
+
+            while ((c = rdr.Read()) > 0)
+            {
+                if (c == '"')
+                {
+                    sb.Append("\\\"");
+                }
+                else if (c == '\\')
+                {
+                    int nrbackslash = 1;
+
+                    while (rdr.Peek() == '\\')
+                    {
+                        nrbackslash++;
+                        rdr.Read();
+                    }
+
+                    if (rdr.Peek() == '"')
+                    {
+                        sb.Append(new String('\\', nrbackslash * 2));
+                    }
+                    else
+                    {
+                        sb.Append(new String('\\', nrbackslash));
+                    }
+                }
+                else
+                {
+                    sb.Append((char)c);
+                }
+            }
+
+            sb.Append('"');
+            return sb.ToString();
+        }
+
+        public static string CreateCommandArguments(params string[] args)
+        {
+            return String.Join(" ", args.Select(s => EscapeCommandLineArgument(s)).ToArray());
+        }
+
         [STAThread]
         private static int Main(string[] args)
         {
@@ -26,16 +73,45 @@ namespace SouthernCluster.ReportCards
                 if (IntPtr.Size == 8)
                 {
                     NativeMethods.TryAttachConsole(-1);
-                    Stream run32strm = Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(AppMain).Namespace + ".Dependencies.Run32.exe");
-                    byte[] run32data = new byte[run32strm.Length];
-                    run32strm.Read(run32data, 0, (int)run32strm.Length);
-                    string run32path = Path.GetTempFileName() + ".exe";
-                    // TODO: copy 32-bit wrapper to temp directory
-                    File.WriteAllBytes(run32path, run32data);
-                    // TODO: execute 32-bit wrapper
-                    Process run32proc = Process.Start(run32path, Environment.CommandLine);
+
+#if false
+                    File.Copy(Assembly.GetExecutingAssembly().Location, run32path);
+                    string corflagspath = Path.GetTempFileName() + ".exe";
+
+                    using (Stream corflagsstrm = Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(AppMain).Namespace + ".Dependencies.CorFlags.exe"))
+                    {
+                        byte[] corflagsdata = new byte[corflagsstrm.Length];
+                        corflagsstrm.Read(corflagsdata, 0, (int)corflagsstrm.Length);
+                        File.WriteAllBytes(corflagspath, corflagsdata);
+                    }
+
+                    Process corflagsproc = Process.Start(corflagspath, CreateCommandArguments("/32BIT+", run32path));
+                    corflagsproc.WaitForExit();
+                    Process run32proc = Process.Start(run32path, CreateCommandArguments(args));
                     run32proc.WaitForExit();
                     return run32proc.ExitCode;
+#else
+                    string run32path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Run32.exe");
+                    using (Stream run32strm = Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(AppMain).Namespace + ".Dependencies.Run32.exe"))
+                    {
+                        byte[] run32data = new byte[run32strm.Length];
+                        run32strm.Read(run32data, 0, (int)run32strm.Length);
+
+                        try
+                        {
+                            File.WriteAllBytes(run32path, run32data);
+                        }
+                        catch
+                        {
+                            run32path = Path.GetTempFileName() + ".exe";
+                            File.WriteAllBytes(run32path, run32data);
+                        }
+                    }
+
+                    Process run32proc = Process.Start(run32path, CreateCommandArguments(new string[] { Assembly.GetExecutingAssembly().Location }.Concat(args).ToArray()));
+                    run32proc.WaitForExit();
+                    return run32proc.ExitCode;
+#endif
                 }
                 else
                 {
