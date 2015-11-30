@@ -99,7 +99,10 @@ namespace SouthernCluster.ReportCards
 
                         try
                         {
-                            File.WriteAllBytes(run32path, run32data);
+                            if (!File.Exists(run32path))
+                            {
+                                File.WriteAllBytes(run32path, run32data);
+                            }
                         }
                         catch
                         {
