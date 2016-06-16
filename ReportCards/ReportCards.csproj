@@ -163,6 +163,7 @@
     <EmbeddedResource Include="DataTableGUI.resx">
       <DependentUpon>DataTableGUI.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Dependencies\Run32.exe" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -171,12 +172,10 @@
       <DependentUpon>WindowsGUI.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <None Include="Dependencies\Microsoft.Office.Core.dll" />
     <None Include="Dependencies\Microsoft.Office.Interop.Publisher.dll" />
     <None Include="Dependencies\MSXML2.dll" />
-    <Content Include="Dependencies\Run32.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
