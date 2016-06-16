@@ -266,7 +266,13 @@
                 delrange.Delete();
                 if (value != null)
                 {
-                    range.InsertAfter(value);
+                    string[] paras = value.Split('\n');
+                    range.InsertAfter(paras[0].Trim());
+                    for (int i = 1; i < paras.Length; i++)
+                    {
+                        range.InsertAfter("\r");
+                        range.InsertAfter(paras[i].Trim());
+                    }
                     range.Font = font;
                 }
             }
