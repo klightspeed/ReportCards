@@ -45,7 +45,7 @@
 
         public void SetVar(string key, string val)
         {
-            variables[key.ToUpper()] = val;
+            variables[key.ToUpper()] = val.Replace("`n", "\n");
         }
 
         public IEnumerable<KeyValuePair<string, string>> Vars
